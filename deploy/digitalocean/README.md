@@ -22,14 +22,15 @@ Complete guide for deploying KaChing on DigitalOcean with automated setup script
 # SSH into your droplet
 ssh root@YOUR_DROPLET_IP
 
-# Download and run the setup script
-curl -fsSL https://raw.githubusercontent.com/cmcmaster1/kaching/main/deploy/digitalocean/setup.sh | bash
+# Download the deployment script
+wget https://raw.githubusercontent.com/cmcmaster1/kaching/main/deploy/digitalocean/quick-deploy.sh
+chmod +x quick-deploy.sh
 
-# Or clone and run manually
-git clone https://github.com/cmcmaster1/kaching.git
-cd kaching
-chmod +x deploy/digitalocean/setup.sh
-sudo ./deploy/digitalocean/setup.sh
+# Run the deployment
+./quick-deploy.sh --yes
+
+# Alternative: Download and run setup script directly
+curl -fsSL https://raw.githubusercontent.com/cmcmaster1/kaching/main/deploy/digitalocean/setup.sh | bash
 ```
 
 ### 3. Deploy Application

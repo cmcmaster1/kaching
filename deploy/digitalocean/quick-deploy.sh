@@ -2,6 +2,20 @@
 # Quick deployment script for KaChing on DigitalOcean
 # Handles private GitHub repository authentication
 
+# Check if stdin is a terminal (interactive) or pipe
+if [[ ! -t 0 ]]; then
+    echo "❌ This script requires interactive input and cannot be piped from curl."
+    echo ""
+    echo "💡 Please run it this way instead:"
+    echo "wget https://raw.githubusercontent.com/cmcmaster1/kaching/main/deploy/digitalocean/quick-deploy.sh"
+    echo "chmod +x quick-deploy.sh"
+    echo "./quick-deploy.sh --yes"
+    echo ""
+    echo "Or for system setup only:"
+    echo "curl -fsSL https://raw.githubusercontent.com/cmcmaster1/kaching/main/deploy/digitalocean/setup.sh | sudo bash"
+    exit 1
+fi
+
 # Check for --yes flag to skip confirmation
 SKIP_CONFIRM=false
 if [[ "$1" == "--yes" || "$1" == "-y" ]]; then
@@ -28,9 +42,6 @@ if [[ "$SKIP_CONFIRM" == "false" ]]; then
     read -r confirm
     if [[ ! $confirm =~ ^[Yy]$ ]]; then
         echo "Deployment cancelled."
-        echo ""
-        echo "💡 To skip this prompt, run with --yes flag:"
-        echo "curl -fsSL https://raw.githubusercontent.com/cmcmaster1/kaching/main/deploy/digitalocean/quick-deploy.sh | bash -s -- --yes"
         exit 0
     fi
 else
