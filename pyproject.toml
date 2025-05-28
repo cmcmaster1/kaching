@@ -1,0 +1,271 @@
+[project]
+name = "kaching"
+version = "0.1.0"
+description = "Autonomous affiliate content agent using Smolagents multi-agent framework"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+authors = [
+    {name = "KaChing Project", email = "kaching@example.com"},
+]
+keywords = ["ai", "agents", "affiliate", "content", "smolagents", "mcp"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Office/Business :: Financial",
+]
+dependencies = [
+    # Core Smolagents framework
+    "smolagents>=1.16.1",
+    
+    # Logging and utilities
+    "loguru>=0.7.0",
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    
+    # HTTP and web utilities
+    "httpx>=0.25.0",
+    "aiohttp>=3.8.0",
+    "requests>=2.31.0",
+    
+    # Health monitoring and web server
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
+    "psutil>=5.9.0",
+    
+    # Data processing
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    
+    # Async support
+    "asyncio-throttle>=1.0.0",
+    
+    # File and content processing
+    "beautifulsoup4>=4.12.0",
+    "lxml>=4.9.0",
+    "markdown>=3.5.0",
+    
+    # Scheduling and task management
+    "schedule>=1.2.0",
+    
+    # Configuration management
+    "pyyaml>=6.0",
+    
+    # Added nest_asyncio
+    "nest_asyncio>=1.6.0",
+]
+
+[project.optional-dependencies]
+# Mac-specific dependencies (Apple Silicon with MLX)
+mac = [
+    "mlx>=0.25.0",
+    "mlx-lm>=0.24.0",
+]
+
+# PC-specific dependencies (NVIDIA GPU with LiteLLM)
+pc = [
+    "litellm>=1.0.0",
+    "torch>=2.0.0",
+    "transformers>=4.35.0",
+]
+
+# Model Context Protocol servers and tools
+mcp = [
+    # Core MCP dependencies
+    "mcp>=1.9.0",  # Main MCP SDK
+    "smolagents[mcp]>=1.16.1", # Ensure smolagents is installed with its MCP extras
+    
+    # Official MCP servers (using npx/uvx installation method)
+    # These will be installed via uvx when needed, not as Python packages
+    
+    # Additional MCP utilities
+    "httpx>=0.25.0",  # For HTTP-based MCP servers
+    "aiofiles>=23.0.0",  # For async file operations
+]
+
+# WordPress integration
+wordpress = [
+    "python-wordpress-xmlrpc>=2.3",
+    "wordpress-api>=1.2.0",
+]
+
+# SEO and keyword research tools
+seo = [
+    "google-api-python-client>=2.0.0",
+    "google-auth>=2.0.0",
+    "google-auth-oauthlib>=1.0.0",
+    "google-auth-httplib2>=0.2.0",
+    "serpapi>=0.1.0,<1.0.0",
+    "pytrends>=4.9.0",
+]
+
+# Development dependencies
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "mypy>=1.5.0",
+    "pre-commit>=3.0.0",
+    "ruff>=0.1.0",
+]
+
+# All optional dependencies
+all = [
+    "kaching[mac,pc,mcp,wordpress,seo,dev]"
+]
+
+[project.urls]
+Homepage = "https://github.com/cmcmaster1/kaching"
+Documentation = "https://github.com/cmcmaster1/kaching#readme"
+Repository = "https://github.com/cmcmaster1/kaching"
+Issues = "https://github.com/cmcmaster1/kaching/issues"
+
+[project.scripts]
+kaching-orchestrator = "kaching.orchestrator:main"
+kaching-research = "kaching.agents.research_agent:main"
+kaching-content = "kaching.agents.content_agent:main"
+kaching-publisher = "kaching.agents.publishing_agent:main"
+kaching-monitor = "kaching.agents.monitor_agent:main"
+kaching-mcp-demo = "examples.mcp_demo:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["kaching"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/kaching",
+    "/examples",
+    "/workspace",
+    "/README.md",
+    "/LICENSE",
+    "/pyproject.toml",
+]
+
+# Black configuration
+[tool.black]
+line-length = 88
+target-version = ['py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+# isort configuration
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["kaching"]
+
+# MyPy configuration
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "smolagents.*",
+    "mcp.*",
+    "mlx.*",
+    "mlx_lm.*",
+    "litellm.*",
+    "schedule.*",
+    "loguru.*",
+]
+ignore_missing_imports = true
+
+# Pytest configuration
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "mcp: marks tests that require MCP servers",
+]
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["kaching"]
+omit = [
+    "*/tests/*",
+    "*/examples/*",
+    "*/__pycache__/*",
+    "*/.*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+# Ruff configuration
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+"examples/*" = ["E402"]  # Allow imports not at top of file in examples
+
+[tool.uv.sources]
+kaching = { path = ".", editable = true }

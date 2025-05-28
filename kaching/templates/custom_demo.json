@@ -1,0 +1,19 @@
+{
+  "niche": "custom test niche",
+  "budget_limit": 500.0,
+  "workspace_path": "./workspace",
+  "model_backend": "mlx",
+  "model_id": "mlx-community/gemma-3-4b-it-qat-4bit",
+  "max_tokens": 1024,
+  "temperature": 0.7,
+  "planning_interval": 1,
+  "model_kwargs": {
+    "trust_remote_code": false
+  },
+  "target_revenue": 1000.0,
+  "content_frequency": 1,
+  "quality_threshold": 0.7,
+  "max_daily_spend": 5.0,
+  "content_review_required": true,
+  "auto_publish": false
+}

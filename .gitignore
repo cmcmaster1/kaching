@@ -1,0 +1,129 @@
+# KaChing Project .gitignore
+
+# Environment and secrets
+.env
+.env.local
+.env.production
+.env.staging
+*.env
+workspace/secrets/
+workspace/config/*.json
+!workspace/config/.gitkeep
+
+# Internal planning documents (not for public repo)
+PROJECT_PLAN.md
+NEXT_STEPS.md
+DEPLOYMENT_SUMMARY.md
+MCP_Servers.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.env/
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Testing
+.coverage
+.pytest_cache/
+.tox/
+.nox/
+htmlcov/
+.coverage.*
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Logs
+*.log
+workspace/logs/
+logs/
+
+# Runtime data
+workspace/content/
+workspace/schedule/schedule.json
+workspace/backups/
+
+# Model files and caches
+*.bin
+*.safetensors
+models/
+.cache/
+.huggingface/
+
+# MCP server installations
+node_modules/
+.npm/
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Deployment specific
+deploy/digitalocean/server_ip.txt
+deploy/digitalocean/.deployed
+
+# WordPress credentials
+wp-config.php
+wordpress/
+
+# Affiliate tracking
+affiliate_data/
+performance_data/
+
+# Local configuration overrides
+.kaching-config.json
+local_config.json 

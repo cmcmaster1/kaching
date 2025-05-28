@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+Run python code using `uv run`, keep the pyproject.toml file uptodate and make sure packages are installed using `uv sync`
