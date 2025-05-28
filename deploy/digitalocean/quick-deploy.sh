@@ -2,6 +2,12 @@
 # Quick deployment script for KaChing on DigitalOcean
 # Handles private GitHub repository authentication
 
+# Check for --yes flag to skip confirmation
+SKIP_CONFIRM=false
+if [[ "$1" == "--yes" || "$1" == "-y" ]]; then
+    SKIP_CONFIRM=true
+fi
+
 echo "🚀 KaChing Quick Deployment"
 echo "=========================="
 
@@ -17,10 +23,18 @@ echo "✅ SSH access to droplet"
 echo "✅ GitHub private repository: https://github.com/cmcmaster1/kaching"
 echo ""
 
-read -p "Continue with deployment? (y/N): " confirm
-if [[ ! $confirm =~ ^[Yy]$ ]]; then
-    echo "Deployment cancelled."
-    exit 0
+if [[ "$SKIP_CONFIRM" == "false" ]]; then
+    echo "Continue with deployment? (y/N)"
+    read -r confirm
+    if [[ ! $confirm =~ ^[Yy]$ ]]; then
+        echo "Deployment cancelled."
+        echo ""
+        echo "💡 To skip this prompt, run with --yes flag:"
+        echo "curl -fsSL https://raw.githubusercontent.com/cmcmaster1/kaching/main/deploy/digitalocean/quick-deploy.sh | bash -s -- --yes"
+        exit 0
+    fi
+else
+    echo "🚀 Auto-confirming deployment (--yes flag detected)"
 fi
 
 echo ""
@@ -38,7 +52,8 @@ echo "Choose your preferred method:"
 echo "1) Personal Access Token (Recommended)"
 echo "2) SSH Key"
 echo ""
-read -p "Enter choice (1-2): " auth_method
+echo "Enter choice (1-2):"
+read -r auth_method
 
 if [[ $auth_method == "1" ]]; then
     echo ""
@@ -48,14 +63,17 @@ if [[ $auth_method == "1" ]]; then
     echo "3. Select 'repo' scope"
     echo "4. Copy the token"
     echo ""
-    read -p "Have you created your token? (y/N): " token_ready
+    echo "Have you created your token? (y/N)"
+    read -r token_ready
     if [[ ! $token_ready =~ ^[Yy]$ ]]; then
         echo "Please create your token first, then run this script again."
         exit 0
     fi
     
-    read -p "GitHub Username: " GITHUB_USER
-    read -s -p "Personal Access Token: " GITHUB_TOKEN
+    echo "GitHub Username:"
+    read -r GITHUB_USER
+    echo "Personal Access Token:"
+    read -rs GITHUB_TOKEN
     echo ""
     
     # Test authentication
@@ -84,7 +102,8 @@ elif [[ $auth_method == "2" ]]; then
     echo ""
     cat ~/.ssh/id_ed25519.pub
     echo ""
-    read -p "Have you added the SSH key to GitHub? (y/N): " ssh_ready
+    echo "Have you added the SSH key to GitHub? (y/N)"
+    read -r ssh_ready
     if [[ ! $ssh_ready =~ ^[Yy]$ ]]; then
         echo "Please add the SSH key to GitHub first, then run this script again."
         exit 0
