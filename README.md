@@ -20,7 +20,7 @@ KaChing now includes comprehensive **Model Context Protocol (MCP)** support, giv
 2. **Set Up Environment**:
    ```bash
    # Clone and enter the project
-   git clone <repo-url>
+   git clone https://github.com/cmcmaster1/kaching.git
    cd kaching
 
    # Install with MCP support

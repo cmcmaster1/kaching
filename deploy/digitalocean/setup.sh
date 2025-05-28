@@ -262,13 +262,45 @@ cd "$KACHING_HOME"
 
 echo "🔄 Deploying KaChing application..."
 
+# Function to clone with authentication
+clone_private_repo() {
+    echo "📥 Cloning private repository..."
+    echo "Choose authentication method:"
+    echo "1) Personal Access Token"
+    echo "2) SSH Key"
+    echo "3) Username/Password"
+    read -p "Enter choice (1-3): " auth_choice
+    
+    case $auth_choice in
+        1)
+            read -p "GitHub Username: " github_user
+            read -s -p "Personal Access Token: " github_token
+            echo
+            git clone "https://${github_user}:${github_token}@github.com/cmcmaster1/kaching.git" .
+            ;;
+        2)
+            echo "Using SSH key authentication..."
+            git clone "git@github.com:cmcmaster1/kaching.git" .
+            ;;
+        3)
+            read -p "GitHub Username: " github_user
+            read -s -p "GitHub Password: " github_pass
+            echo
+            git clone "https://${github_user}:${github_pass}@github.com/cmcmaster1/kaching.git" .
+            ;;
+        *)
+            echo "Invalid choice. Exiting."
+            exit 1
+            ;;
+    esac
+}
+
 # Clone or update repository
 if [ -d ".git" ]; then
     echo "📥 Updating existing repository..."
     git pull origin main
 else
-    echo "📥 Cloning repository..."
-    git clone "$REPO_URL" .
+    clone_private_repo
 fi
 
 # Install dependencies

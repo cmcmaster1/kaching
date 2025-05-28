@@ -1,44 +1,138 @@
 #!/bin/bash
-# KaChing Quick Deploy Script (No GitHub Required)
-# Run this after manually uploading files to /opt/kaching
+# Quick deployment script for KaChing on DigitalOcean
+# Handles private GitHub repository authentication
 
-set -e
+echo "🚀 KaChing Quick Deployment"
+echo "=========================="
 
-KACHING_HOME="/opt/kaching"
-KACHING_USER="kaching"
+# Check if running as root
+if [[ $EUID -eq 0 ]]; then
+   echo "❌ Don't run this as root. Run as regular user with sudo access."
+   exit 1
+fi
 
-echo "🚀 KaChing Quick Deployment (Local Files)"
-echo "========================================"
+echo "📋 Pre-deployment checklist:"
+echo "✅ DigitalOcean droplet created (Ubuntu 22.04 LTS)"
+echo "✅ SSH access to droplet"
+echo "✅ GitHub private repository: https://github.com/cmcmaster1/kaching"
+echo ""
 
-# Ensure we're in the right directory
-cd "$KACHING_HOME"
+read -p "Continue with deployment? (y/N): " confirm
+if [[ ! $confirm =~ ^[Yy]$ ]]; then
+    echo "Deployment cancelled."
+    exit 0
+fi
 
-# Set ownership
-chown -R "$KACHING_USER:$KACHING_USER" "$KACHING_HOME"
+echo ""
+echo "🚀 Starting system setup..."
+
+# Download and run main setup script FIRST
+curl -fsSL https://raw.githubusercontent.com/cmcmaster1/kaching/main/deploy/digitalocean/setup.sh | sudo bash
+
+echo ""
+echo "✅ System setup complete!"
+echo ""
+
+echo "🔐 GitHub Authentication Setup"
+echo "Choose your preferred method:"
+echo "1) Personal Access Token (Recommended)"
+echo "2) SSH Key"
+echo ""
+read -p "Enter choice (1-2): " auth_method
+
+if [[ $auth_method == "1" ]]; then
+    echo ""
+    echo "📝 Personal Access Token Setup:"
+    echo "1. Go to: https://github.com/settings/tokens"
+    echo "2. Generate new token (classic)"
+    echo "3. Select 'repo' scope"
+    echo "4. Copy the token"
+    echo ""
+    read -p "Have you created your token? (y/N): " token_ready
+    if [[ ! $token_ready =~ ^[Yy]$ ]]; then
+        echo "Please create your token first, then run this script again."
+        exit 0
+    fi
+    
+    read -p "GitHub Username: " GITHUB_USER
+    read -s -p "Personal Access Token: " GITHUB_TOKEN
+    echo ""
+    
+    # Test authentication
+    echo "🔍 Testing GitHub authentication..."
+    if curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/cmcmaster1/kaching >/dev/null; then
+        echo "✅ GitHub authentication successful"
+    else
+        echo "❌ GitHub authentication failed. Please check your credentials."
+        exit 1
+    fi
+    
+elif [[ $auth_method == "2" ]]; then
+    echo ""
+    echo "🔑 SSH Key Setup:"
+    echo "We'll generate an SSH key and you'll need to add it to GitHub."
+    echo ""
+    
+    # Generate SSH key if it doesn't exist
+    if [[ ! -f ~/.ssh/id_ed25519 ]]; then
+        echo "Generating SSH key..."
+        ssh-keygen -t ed25519 -C "kaching-deployment" -f ~/.ssh/id_ed25519 -N ""
+    fi
+    
+    echo "📋 Copy this SSH public key to GitHub:"
+    echo "https://github.com/settings/ssh/new"
+    echo ""
+    cat ~/.ssh/id_ed25519.pub
+    echo ""
+    read -p "Have you added the SSH key to GitHub? (y/N): " ssh_ready
+    if [[ ! $ssh_ready =~ ^[Yy]$ ]]; then
+        echo "Please add the SSH key to GitHub first, then run this script again."
+        exit 0
+    fi
+    
+    # Test SSH connection
+    echo "🔍 Testing SSH connection to GitHub..."
+    if ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
+        echo "✅ SSH authentication successful"
+    else
+        echo "❌ SSH authentication failed. Please check your SSH key setup."
+        exit 1
+    fi
+else
+    echo "Invalid choice. Exiting."
+    exit 1
+fi
+
+echo ""
+echo "🔧 Now configuring application..."
+
+# Switch to kaching user and deploy
+sudo -u kaching bash << DEPLOY_EOF
+cd /opt/kaching
+
+# Set up git credentials based on chosen method
+if [[ "$auth_method" == "1" ]]; then
+    git clone "https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/cmcmaster1/kaching.git" .
+elif [[ "$auth_method" == "2" ]]; then
+    git clone "git@github.com:cmcmaster1/kaching.git" .
+fi
 
 # Install dependencies
 echo "📦 Installing dependencies..."
-sudo -u "$KACHING_USER" /home/$KACHING_USER/.cargo/bin/uv sync
+uv sync
 
-# Copy configuration
-if [ ! -f ".env" ]; then
-    echo "⚙️ Creating environment configuration..."
-    sudo -u "$KACHING_USER" cp kaching/templates/digitalocean.json .kaching-config.json
-    sudo -u "$KACHING_USER" cp env.example .env
-    echo "❗ Please edit .env file with your configuration"
-fi
+# Copy configuration templates
+echo "⚙️ Setting up configuration..."
+cp kaching/templates/digitalocean.json .kaching-config.json
+cp env.example .env
 
 # Create workspace directories
-echo "📁 Setting up workspace..."
-sudo -u "$KACHING_USER" mkdir -p workspace/{config,content,logs,schedule,secrets}
-
-# Set permissions
+mkdir -p workspace/{config,content,logs,schedule,secrets}
 chmod 755 workspace
 chmod 700 workspace/secrets
 
 # Create initial schedule
-echo "📅 Creating initial schedule..."
-sudo -u "$KACHING_USER" cat > workspace/schedule/schedule.json << 'EOF'
+cat > workspace/schedule/schedule.json << 'SCHEDULE_EOF'
 {
     "enabled": true,
     "tasks": [
@@ -51,21 +145,28 @@ sudo -u "$KACHING_USER" cat > workspace/schedule/schedule.json << 'EOF'
             "name": "weekly_performance_review",
             "schedule": "0 10 * * 1",
             "description": "Weekly performance analysis every Monday at 10 AM"
-        },
-        {
-            "name": "monthly_strategy_review",
-            "schedule": "0 11 1 * *",
-            "description": "Monthly strategy review on 1st of each month at 11 AM"
         }
     ]
 }
-EOF
+SCHEDULE_EOF
 
-echo "✅ Quick deployment complete!"
+echo "✅ Application deployment complete!"
+DEPLOY_EOF
+
 echo ""
-echo "Next steps:"
-echo "1. Edit .env file: nano .env"
+echo "🎉 KaChing deployment successful!"
+echo ""
+echo "📝 Next steps:"
+echo "1. Configure your .env file: sudo -u kaching nano /opt/kaching/.env"
 echo "2. Test the system: sudo -u kaching uv run examples/end_to_end_demo.py"
 echo "3. Start services: sudo systemctl start kaching-orchestrator kaching-health"
-echo "4. Check status: sudo systemctl status kaching-orchestrator"
-echo "5. View logs: sudo journalctl -u kaching-orchestrator -f" 
+echo "4. Monitor: /opt/kaching/monitor.sh"
+echo ""
+echo "🌐 Monitoring URLs:"
+echo "Health: http://$(curl -s ifconfig.me)/health"
+echo "Status: http://$(curl -s ifconfig.me)/status (admin/kaching-monitor-2024)"
+echo ""
+echo "🔐 Remember to:"
+echo "- Configure your .env file with API keys"
+echo "- Set up SSL certificates with certbot"
+echo "- Configure your domain DNS" 
